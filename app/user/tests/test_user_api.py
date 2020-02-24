@@ -7,6 +7,8 @@ from rest_framework import status
 
 
 CREATE_USER_URL = reverse('user:create')
+OBTAIN_TOKEN_URL = reverse('user:token_obtain')
+REFRESH_TOKEN_URL = reverse('user:token_refresh')
 
 
 def create_user(**params):
@@ -18,6 +20,42 @@ class PublicUserAPITests(TestCase):
 
     def setUp(self):
         self.client = APIClient()
+
+    def test_create_token_for_user(self):
+        """Test that JWT toke is created for user"""
+        payload = {'email': 'test@qdstudio.com', 'password': 'password123'}
+        create_user(**payload)
+
+        res = self.client.post(OBTAIN_TOKEN_URL, payload)
+
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertIn('access', res.data)
+        self.assertIn('refresh', res.data)
+
+    def test_refresh_token_for_user(self):
+        """Test that JWT token can be refreshed using refresh token."""
+        payload = {'email': 'test@qdstudio.com', 'password': 'password123'}
+        create_user(**payload)
+
+        res = self.client.post(OBTAIN_TOKEN_URL, payload)
+        payload = {'refresh': res.data['refresh']}
+        res_refresh = self.client.post(REFRESH_TOKEN_URL, payload)
+
+        self.assertEqual(res_refresh.status_code, status.HTTP_200_OK)
+        self.assertIn('access', res_refresh.data)
+
+
+class PrivateUserAPITests(TestCase):
+    """Test the user API (private)"""
+
+    def setUp(self):
+        self.client = APIClient()
+        self.user = create_user(
+            email='admin@qdstudio.com',
+            password='password123',
+            name='User Admin'
+        )
+        self.client.force_authenticate(user=self.user)
 
     def test_create_valid_user_success(self):
         """Test creating user with valid payload is successful"""
