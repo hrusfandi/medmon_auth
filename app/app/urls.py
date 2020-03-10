@@ -15,8 +15,12 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
+from user.views import GroupView, PermissionView
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/user/', include('user.urls')),
+    path('api/permission/permissions/', PermissionView.as_view(),
+         name='permission_list'),
+    path('api/group/groups/', GroupView.as_view(), name='group_list'),
 ]

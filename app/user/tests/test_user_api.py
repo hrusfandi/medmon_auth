@@ -6,7 +6,7 @@ from rest_framework.test import APIClient
 from rest_framework import status
 
 
-CREATE_USER_URL = reverse('user:create')
+CREATE_USER_URL = reverse('user:user_list')
 OBTAIN_TOKEN_URL = reverse('user:token_obtain')
 REFRESH_TOKEN_URL = reverse('user:token_refresh')
 
@@ -66,6 +66,7 @@ class PrivateUserAPITests(TestCase):
         }
 
         res = self.client.post(CREATE_USER_URL, payload)
+        res.data.pop('groups')
 
         self.assertEqual(res.status_code, status.HTTP_201_CREATED)
         user = get_user_model().objects.get(**res.data)
